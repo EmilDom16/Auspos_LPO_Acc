@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PO Box Manager â€” AusPost LPO</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F4F3EF;color:#1a1a18;min-height:100vh}
+.topbar{background:#fff;border-bottom:1px solid #e5e3dc;padding:0 2rem;height:56px;display:flex;align-items:center;position:sticky;top:0;z-index:10}
+.topbar-logo{width:32px;height:32px;background:#c8102e;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:500;font-size:14px;margin-right:10px}
+.topbar-title{font-weight:500;font-size:15px}
+.topbar-sub{font-size:12px;color:#888780}
+.container{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:24px;font-weight:500}
+.page-header p{font-size:13px;color:#5F5E5A;margin-top:3px}
+.btn{height:36px;padding:0 16px;font-size:13px;font-weight:500;border-radius:8px;cursor:pointer;white-space:nowrap;border:1px solid #d3d1c7;background:#fff;color:#1a1a18;transition:background 0.15s;font-family:inherit}
+.btn:hover{background:#F1EFE8}
+.btn.primary{background:#185FA5;color:#E6F1FB;border-color:#185FA5}
+.btn.primary:hover{background:#0C447C}
+.btn.danger{background:transparent;color:#A32D2D;border-color:#F7C1C1}
+.btn.danger:hover{background:#FCEBEB}
+.btn.sm{height:30px;padding:0 12px;font-size:12px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.5rem}
+.stat{background:#fff;border-radius:10px;border:1px solid #e5e3dc;padding:1rem 1.25rem}
+.stat-label{font-size:12px;color:#5F5E5A;margin-bottom:6px}
+.stat-value{font-size:26px;font-weight:500}
+.stat-value.green{color:#3B6D11}
+.stat-value.blue{color:#185FA5}
+.stat-value.amber{color:#854F0B}
+.toolbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.toolbar input{flex:1;min-width:200px;height:36px;padding:0 12px;font-size:13px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1a1a18;font-family:inherit}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:#185FA5}
+.toolbar select{height:36px;padding:0 10px;font-size:13px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1a1a18;font-family:inherit}
+.table-card{background:#fff;border-radius:12px;border:1px solid #e5e3dc;overflow:hidden}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+th{background:#F4F3EF;padding:10px 14px;text-align:left;font-weight:500;font-size:11px;color:#5F5E5A;border-bottom:1px solid #e5e3dc;text-transform:uppercase;letter-spacing:.04em}
+td{padding:11px 14px;border-bottom:1px solid #f0ede6;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAF7}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+.badge.Available{background:#EAF3DE;color:#3B6D11}
+.badge.Rented{background:#E6F1FB;color:#185FA5}
+.badge.Reserved{background:#FAEEDA;color:#854F0B}
+.badge.Maintenance{background:#FCEBEB;color:#A32D2D}
+.actions{display:flex;gap:6px}
+.empty{text-align:center;padding:4rem 1rem;color:#888780;font-size:14px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:100;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;border:1px solid #e5e3dc;padding:1.75rem;width:min(580px,95vw);max-height:90vh;overflow-y:auto}
+.modal h2{font-size:18px;font-weight:500;margin-bottom:1.5rem}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:11px;font-weight:500;color:#5F5E5A;text-transform:uppercase;letter-spacing:.04em}
+.form-group input,.form-group select,.form-group textarea{padding:8px 10px;font-size:13px;border:1px solid #d3d1c7;border-radius:8px;background:#fff;color:#1a1a18;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#185FA5}
+.form-group textarea{resize:vertical;min-height:64px}
+.section-sep{grid-column:1/-1;font-size:11px;font-weight:500;color:#5F5E5A;text-transform:uppercase;letter-spacing:.05em;padding-top:8px;border-top:1px solid #e5e3dc;margin-top:4px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:1.5rem;padding-top:1rem;border-top:1px solid #e5e3dc}
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#fff;border:1px solid #e5e3dc;border-radius:8px;padding:.75rem 1.1rem;font-size:13px;z-index:200;transition:opacity 0.3s;opacity:0;pointer-events:none}
+.toast.show{opacity:1}
+@media(max-width:640px){.form-grid{grid-template-columns:1fr}th,td{padding:8px 10px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">LPO</div>
+  <div><div class="topbar-title">PO Box Manager</div><div class="topbar-sub">AusPost LPO Accounting v1</div></div>
+</div>
+<div class="container">
+  <div class="page-header">
+    <div><h1>PO Boxes</h1><p>Manage and track all PO Box rentals</p></div>
+    <button class="btn primary" onclick="openModal()">+ Add PO Box</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total boxes</div><div class="stat-value" id="stat-total">â€”</div></div>
+    <div class="stat"><div class="stat-label">Available</div><div class="stat-value green" id="stat-available">â€”</div></div>
+    <div class="stat"><div class="stat-label">Rented</div><div class="stat-value blue" id="stat-rented">â€”</div></div>
+    <div class="stat"><div class="stat-label">Expiring soon</div><div class="stat-value amber" id="stat-expiring">â€”</div></div>
+  </div>
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Search box number, tenant, location, suburb..." oninput="filterBoxes()">
+    <select id="filter-status" onchange="filterBoxes()">
+      <option value="">All statuses</option>
+      <option>Available</option><option>Rented</option><option>Reserved</option><option>Maintenance</option>
+    </select>
+    <select id="filter-size" onchange="filterBoxes()">
+      <option value="">All sizes</option>
+      <option>Small</option><option>Medium</option><option>Large</option>
+    </select>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead><tr>
+        <th style="width:80px">Box #</th>
+        <th style="width:120px">Location</th>
+        <th style="width:65px">Size</th>
+        <th style="width:95px">Status</th>
+        <th style="width:130px">Tenant</th>
+        <th style="width:150px">Tenant address</th>
+        <th style="width:95px">Expiry</th>
+        <th style="width:75px">Rate/mo</th>
+        <th style="width:100px">Actions</th>
+      </tr></thead>
+      <tbody id="table-body"><tr><td colspan="9" class="empty">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="closeModalBg(event)">
+  <div class="modal">
+    <h2 id="modal-title">Add PO Box</h2>
+    <div class="form-grid">
+      <div class="form-group full"><span class="section-sep" style="border-top:none;padding-top:0">Box details</span></div>
+      <div class="form-group"><label>Box number *</label><input id="f-box_number" placeholder="e.g. 1042"></div>
+      <div class="form-group"><label>Location *</label><input id="f-location" placeholder="e.g. Melbourne CBD"></div>
+      <div class="form-group"><label>Size *</label><select id="f-size"><option>Small</option><option>Medium</option><option>Large</option></select></div>
+      <div class="form-group"><label>Status *</label><select id="f-status"><option>Available</option><option>Rented</option><option>Reserved</option><option>Maintenance</option></select></div>
+      <div class="form-group"><label>Monthly rate ($)</label><input id="f-monthly_rate" type="number" step="0.01" placeholder="e.g. 25.00"></div>
+      <div class="form-group"><label>Rental start</label><input id="f-rental_start_date" type="date"></div>
+      <div class="form-group"><label>Rental expiry</label><input id="f-rental_expiry_date" type="date"></div>
+      <div></div>
+      <div class="section-sep">Tenant details</div>
+      <div class="form-group"><label>Tenant name</label><input id="f-tenant_name" placeholder="Full name"></div>
+      <div class="form-group"><label>Tenant email</label><input id="f-tenant_email" type="email" placeholder="email@example.com"></div>
+      <div class="form-group full"><label>Tenant phone</label><input id="f-tenant_phone" placeholder="+61 4xx xxx xxx"></div>
+      <div class="section-sep">Tenant address</div>
+      <div class="form-group full"><label>Address line 1</label><input id="f-tenant_address_line1" placeholder="Street number and name"></div>
+      <div class="form-group full"><label>Address line 2</label><input id="f-tenant_address_line2" placeholder="Apartment, unit, suite, etc."></div>
+      <div class="form-group"><label>Suburb</label><input id="f-tenant_suburb" placeholder="e.g. Fitzroy"></div>
+      <div class="form-group"><label>State</label>
+        <select id="f-tenant_state">
+          <option value="">â€” Select â€”</option>
+          <option>VIC</option><option>NSW</option><option>QLD</option><option>WA</option>
+          <option>SA</option><option>TAS</option><option>ACT</option><option>NT</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Postcode</label><input id="f-tenant_postcode" placeholder="e.g. 3065" maxlength="4"></div>
+      <div class="form-group"><label>Country</label><input id="f-tenant_country" placeholder="Australia"></div>
+      <div class="section-sep">Notes</div>
+      <div class="form-group full"><textarea id="f-notes" placeholder="Any additional notes..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveBox()">Save</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const SB_URL = "https://iduwbuosezohkkxwmbly.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlkdXdidW9zZXpvaGtreHdtYmx5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc3NDEzNjcsImV4cCI6MjA5MzMxNzM2N30.v6mijxdq-qpTXMVRINjdMimQ9-YF3pcYN5PKxNbHGkA";
+const H = { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=representation" };
+const FIELDS = ["box_number","location","size","status","monthly_rate","tenant_name","tenant_email","tenant_phone","rental_start_date","rental_expiry_date","tenant_address_line1","tenant_address_line2","tenant_suburb","tenant_state","tenant_postcode","tenant_country","notes"];
+let allBoxes = [], editingId = null;
+
+async function api(m, p, b) {
+  const r = await fetch(SB_URL + "/rest/v1/" + p, { method: m, headers: H, body: b ? JSON.stringify(b) : undefined });
+  if (!r.ok) throw new Error(await r.text());
+  if (m === "DELETE" || r.status === 204) return null;
+  return r.json();
+}
+async function load() {
+  try { allBoxes = await api("GET", "po_boxes?order=box_number.asc"); renderStats(); renderTable(); }
+  catch (e) { showToast("Failed to load: " + e.message, true); }
+}
+function renderStats() {
+  const today = new Date(), soon = new Date(); soon.setDate(soon.getDate() + 30);
+  document.getElementById("stat-total").textContent = allBoxes.length;
+  document.getElementById("stat-available").textContent = allBoxes.filter(b => b.status === "Available").length;
+  document.getElementById("stat-rented").textContent = allBoxes.filter(b => b.status === "Rented").length;
+  document.getElementById("stat-expiring").textContent = allBoxes.filter(b => { if (!b.rental_expiry_date) return false; const d = new Date(b.rental_expiry_date); return d >= today && d <= soon; }).length;
+}
+function fmtAddress(b) { const p = [b.tenant_suburb, b.tenant_state, b.tenant_postcode].filter(Boolean); return p.length ? p.join(" ") : null; }
+function filterBoxes() {
+  const q = document.getElementById("search").value.toLowerCase();
+  const fs = document.getElementById("filter-status").value;
+  const fz = document.getElementById("filter-size").value;
+  const filtered = allBoxes.filter(b => {
+    const match = !q || [b.box_number, b.location, b.tenant_name, b.tenant_email, b.tenant_suburb, b.tenant_postcode].some(v => v && v.toLowerCase().includes(q));
+    return match && (!fs || b.status === fs) && (!fz || b.size === fz);
+  });
+  renderTable(filtered);
+}
+function renderTable(boxes) {
+  if (!boxes) boxes = allBoxes;
+  const nil = '<span style="color:#B4B2A9">â€”</span>';
+  const tbody = document.getElementById("table-body");
+  if (!boxes.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">No PO boxes found</td></tr>'; return; }
+  tbody.innerHTML = boxes.map(b => {
+    const addr = [b.tenant_address_line1, b.tenant_address_line2, b.tenant_suburb, b.tenant_state, b.tenant_postcode, b.tenant_country].filter(Boolean).join(", ");
+    return '<tr>' +
+      '<td><strong>' + b.box_number + '</strong></td>' +
+      '<td>' + b.location + '</td>' +
+      '<td>' + b.size + '</td>' +
+      '<td><span class="badge ' + b.status + '">' + b.status + '</span></td>' +
+      '<td>' + (b.tenant_name || nil) + '</td>' +
+      '<td title="' + addr + '">' + (fmtAddress(b) || nil) + '</td>' +
+      '<td>' + (b.rental_expiry_date ? fmtDate(b.rental_expiry_date) : nil) + '</td>' +
+      '<td>' + (b.monthly_rate != null ? '$' + Number(b.monthly_rate).toFixed(2) : nil) + '</td>' +
+      '<td><div class="actions">' +
+        '<button class="btn sm" onclick="editBox(\'' + b.id + '\')">Edit</button>' +
+        '<button class="btn sm danger" onclick="deleteBox(\'' + b.id + '\',\'' + b.box_number + '\')">Del</button>' +
+      '</div></td></tr>';
+  }).join("");
+}
+function fmtDate(d) { return new Date(d + "T00:00:00").toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" }); }
+function openModal(box) {
+  editingId = box ? box.id : null;
+  document.getElementById("modal-title").textContent = box ? "Edit PO Box" : "Add PO Box";
+  FIELDS.forEach(k => {
+    const el = document.getElementById("f-" + k); if (!el) return;
+    el.value = box ? (box[k] ?? "") : (k === "size" ? "Small" : k === "status" ? "Available" : k === "tenant_country" ? "Australia" : "");
+  });
+  document.getElementById("modal-bg").classList.add("open");
+}
+function closeModal() { document.getElementById("modal-bg").classList.remove("open"); }
+function closeModalBg(e) { if (e.target === document.getElementById("modal-bg")) closeModal(); }
+function editBox(id) { openModal(allBoxes.find(b => b.id === id)); }
+async function saveBox() {
+  const data = {};
+  FIELDS.forEach(k => {
+    const el = document.getElementById("f-" + k); if (!el) return;
+    const v = el.value.trim();
+    data[k] = k === "monthly_rate" ? (v ? parseFloat(v) : null) : (v || null);
+  });
+  if (!data.box_number || !data.location) { showToast("Box number and location are required", true); return; }
+  try {
+    if (editingId) { await api("PATCH", "po_boxes?id=eq." + editingId, data); showToast("PO box updated"); }
+    else { await api("POST", "po_boxes", data); showToast("PO box added"); }
+    closeModal(); await load();
+  } catch (e) { showToast("Error: " + e.message, true); }
+}
+async function deleteBox(id, num) {
+  if (!confirm("Delete PO Box " + num + "? This cannot be undone.")) return;
+  try { await api("DELETE", "po_boxes?id=eq." + id); showToast("PO box deleted"); await load(); }
+  catch (e) { showToast("Error: " + e.message, true); }
+}
+let toastTimer;
+function showToast(msg, err) {
+  const t = document.getElementById("toast");
+  t.textContent = msg; t.style.borderColor = err ? "#F7C1C1" : "#e5e3dc"; t.style.color = err ? "#A32D2D" : "#1a1a18";
+  t.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
+}
+load();
+</script>
+</body>
+</html>
